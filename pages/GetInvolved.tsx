@@ -140,23 +140,23 @@ export const GetInvolved: React.FC = () => {
                 <div className="grid grid-cols-2 gap-4 md:gap-8">
                     <div className="bg-white p-10 rounded-3xl border border-slate-100 shadow-sm flex flex-col items-center text-center group hover:border-brand-blue/30 transition-colors">
                         <Waves size={32} className="text-brand-blue mb-6 group-hover:scale-110 transition-transform" />
-                        <span className="text-5xl font-black text-slate-900 mb-1 tracking-tighter">11K+</span>
+                        <span className="text-5xl font-black text-slate-900 mb-1 tracking-tighter">16K+</span>
                         <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Kgs Removed</span>
                     </div>
                     <div className="bg-white p-10 rounded-3xl border border-slate-100 shadow-sm flex flex-col items-center text-center group hover:border-brand-green/30 transition-colors">
                         <Users size={32} className="text-brand-green mb-6 group-hover:scale-110 transition-transform" />
-                        <span className="text-5xl font-black text-slate-900 mb-1 tracking-tighter">150+</span>
+                        <span className="text-5xl font-black text-slate-900 mb-1 tracking-tighter">120+</span>
                         <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Stewards</span>
                     </div>
                     <div className="bg-white p-10 rounded-3xl border border-slate-100 shadow-sm flex flex-col items-center text-center group hover:border-brand-yellow/30 transition-colors">
                         <Recycle size={32} className="text-brand-yellow mb-6 group-hover:scale-110 transition-transform" />
                         <span className="text-5xl font-black text-slate-900 mb-1 tracking-tighter">600+</span>
-                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Upcycled</span>
+                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Upcycled Items</span>
                     </div>
                     <div className="bg-brand-blue p-10 rounded-3xl border border-brand-blue shadow-2xl flex flex-col items-center text-center text-white group hover:bg-slate-900 transition-colors">
                         <Droplets size={32} className="text-brand-yellow mb-6 group-hover:animate-pulse" />
                         <span className="text-5xl font-black mb-1 tracking-tighter">48+</span>
-                        <span className="text-[10px] font-black text-blue-300 uppercase tracking-[0.2em]">Live Events</span>
+                        <span className="text-[10px] font-black text-blue-300 uppercase tracking-[0.2em]">Cleanup Events</span>
                     </div>
                 </div>
             </div>

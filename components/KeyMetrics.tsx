@@ -49,7 +49,7 @@ export const KeyMetrics: React.FC = () => {
     return () => observer.disconnect();
   }, []);
 
-  const wasteCount = useCountUp(9000, 2500, isVisible);
+  const wasteCount = useCountUp(16000, 2500, isVisible);
   const avgCount = useCountUp(300, 2000, isVisible);
   const riversCount = useCountUp(2, 1500, isVisible);
 
