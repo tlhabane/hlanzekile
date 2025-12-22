@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
-import { ChevronLeft, ShoppingCart, ShieldCheck, CheckCircle, CreditCard, Droplets, Heart } from 'lucide-react';
+import { ChevronLeft, ShoppingCart, ShieldCheck, CheckCircle, CreditCard, Droplets, Heart, User } from 'lucide-react';
 import { CartItem } from '../types';
 
 export const Checkout: React.FC = () => {
@@ -89,16 +89,36 @@ export const Checkout: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 pt-32 pb-24">
-      <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 lg:grid-cols-2 gap-12">
+    <div className="min-h-screen bg-slate-50 pb-24">
+        {/* Hero Header */}
+        <section className="relative py-24 text-white text-center">
+            {/* Background Image */}
+            <div className="absolute inset-0 z-0">
+                <img
+                    src="https://placehold.co/1920x1080/webp"
+                    alt="About Background"
+                    className="w-full h-full object-cover"
+                />
+                {/* Overlay */}
+                <div className="absolute inset-0 bg-brand-blue/90 mix-blend-multiply"></div>
+            </div>
+            <div className="relative z-10 max-w-7xl mx-auto px-4 text-center h-full flex flex-col justify-center items-center">
+                <h2 className="text-3xl md:text-5xl font-bold text-white mb-4 tracking-tight">You're almost there!</h2>
+                <p className="text-blue-100 text-xl md:text-2xl max-w-6xl mx-auto leading-relaxed font-light opacity-90">Thank you for helping us transform waste into opportunities.</p>
+            </div>
+        </section>
+      <div className="max-w-7xl mx-auto px-4 pt-24 grid grid-cols-1 lg:grid-cols-2 gap-12">
         {/* Left: Info Form */}
         <div className="space-y-8">
            <Link to="/get-involved" className="inline-flex items-center text-slate-400 hover:text-brand-blue gap-2 text-xs font-black uppercase tracking-widest">
              <ChevronLeft size={16} /> Back to Involved
            </Link>
-           <h2 className="text-4xl font-black text-brand-blue uppercase tracking-tighter">
-             {donationType ? 'Support Restoration' : 'Checkout Details'}
-           </h2>
+            <div className="flex items-center gap-3 mb-10">
+                <User size={24} className="text-brand-blue" />
+                <h2 className="text-2xl font-black text-brand-blue tracking-tighter">
+                    {donationType ? 'Support Restoration' : 'Checkout Details'}
+                </h2>
+            </div>
            
            <form onSubmit={handleCheckout} className="space-y-8">
               {/* Direct Donation Amount Selection Card */}
@@ -203,7 +223,7 @@ export const Checkout: React.FC = () => {
            <div className="bg-brand-blue rounded-[3rem] p-12 text-white shadow-2xl sticky top-32">
               <div className="flex items-center gap-3 mb-10">
                  {donationType ? <Heart size={24} className="text-brand-yellow" /> : <ShoppingCart size={24} className="text-brand-green" />}
-                 <h2 className="text-2xl font-black uppercase tracking-tighter">Support Summary</h2>
+                 <h2 className="text-2xl font-black tracking-tighter">Support Summary</h2>
               </div>
               
               <div className="space-y-6 mb-12 max-h-[400px] overflow-y-auto pr-4 custom-scrollbar">

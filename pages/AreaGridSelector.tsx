@@ -147,7 +147,7 @@ export const AreaGridSelector: React.FC = () => {
         <iframe 
           width="100%" height="100%" frameBorder="0" 
           src={`https://www.google.com/maps/embed?pb=!1m14!1m12!1m3!1d10000!2d${area.coordinates.lng}!3d${area.coordinates.lat}!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!5e0!3m2!1sen!2sza!4v123456789`}
-          /*src={`https://www.google.com/maps/embed/v1/view?key=AIzaSyClPoCP_KNgiJmJQEA1p4eAi7r5DxM-dTk&center=${area.coordinates.lat},${area.coordinates.lng}&zoom=17&maptype=satellite`}*/
+          /*src={`https://www.google.com/maps/embed/v1/view?key=AI*******************************-dTk&center=${area.coordinates.lat},${area.coordinates.lng}&zoom=17&maptype=satellite`}*/
           className="w-full h-full"
           title={`Detailed Map of ${area.fullName}`}
         />

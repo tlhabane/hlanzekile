@@ -131,7 +131,7 @@ export const SponsorGrid: React.FC = () => {
 
                 <div className="p-8 lg:p-12 flex flex-col flex-grow">
                   <div className="mb-8">
-                    <h3 className="text-3xl font-black text-brand-blue uppercase tracking-tighter mb-2">{area.fullName}</h3>
+                    <h3 className="text-3xl font-black text-brand-blue tracking-tighter mb-2">{area.fullName}</h3>
                     <p className="text-slate-600 font-light leading-relaxed text-sm mb-8">
                       {area.description}
                     </p>
