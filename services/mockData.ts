@@ -9,7 +9,7 @@ export const AGGREGATE_CATEGORIES: WasteCategoryData[] = [
   { category: "Paper/Cardboard", kgs: 111.32, isStriped: false },
   { category: "Textile/Fabric", kgs: 2729.68, isStriped: true },
   { category: "Electronics", kgs: 116.54, isStriped: false },
-  { category: "Other", kgs: 12122.10, isStriped: true }
+  /*{ category: "Other", kgs: 12122.10, isStriped: true }*/
 ];
 
 const TOTAL_WASTE = 16901.22;
