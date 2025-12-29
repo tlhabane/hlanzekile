@@ -1,6 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
-import { MemoryRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { ArrowUp } from 'lucide-react';
 import { Layout } from './components/Layout';
 import { Home } from './pages/Home';
