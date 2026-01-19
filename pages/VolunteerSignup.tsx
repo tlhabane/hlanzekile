@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import {
-    ArrowLeft, ArrowRight, Calendar, MapPin, Clock,
+    ArrowLeft, ArrowRight, Check, Calendar, MapPin, Clock,
     Info, CheckCircle, ShieldAlert, Heart, Phone, User,
     ChevronRight, ChevronLeft, Droplets, Zap
 } from 'lucide-react';
@@ -225,7 +225,7 @@ export const VolunteerSignup: React.FC = () => {
                             {/* Step 1: The Basics */}
                             {step === 1 && (
                                 <div className="space-y-8 animate-slide-up">
-                                    <h3 className="text-2xl font-black text-brand-blue uppercase tracking-tighter">Tell us where & when</h3>
+                                    <h3 className="text-2xl font-black text-brand-blue tracking-tighter">Tell us where & when</h3>
 
                                     <div className="space-y-6">
                                         <div className="space-y-2">
@@ -308,7 +308,7 @@ export const VolunteerSignup: React.FC = () => {
                             {/* Step 2: Health & Emergency */}
                             {step === 2 && (
                                 <div className="space-y-8 animate-slide-up">
-                                    <h3 className="text-2xl font-black text-brand-blue uppercase tracking-tighter">Health & Safety</h3>
+                                    <h3 className="text-2xl font-black text-brand-blue tracking-tighter">Health & Safety</h3>
 
                                     <div className="space-y-6">
                                         <div className="space-y-2">
@@ -382,7 +382,7 @@ export const VolunteerSignup: React.FC = () => {
                             {/* Step 3: Consent */}
                             {step === 3 && (
                                 <div className="space-y-10 animate-slide-up">
-                                    <h3 className="text-2xl font-black text-brand-blue uppercase tracking-tighter">Final Consent</h3>
+                                    <h3 className="text-2xl font-black text-brand-blue tracking-tighter">Consent</h3>
 
                                     <div className="space-y-8">
                                         {/* Safety Guideline */}
@@ -394,6 +394,36 @@ export const VolunteerSignup: React.FC = () => {
                                             <p className="text-xs text-slate-500 leading-relaxed font-light">
                                                 I agree to participate as a volunteer at my own risk and will follow all safety guidelines provided by the team.
                                             </p>
+                                            {/*<div className="grid grid-cols-2 gap-3">
+                                                <button
+                                                    type="button"
+                                                    onClick={(e) => {
+                                                        e.preventDefault();
+                                                        setFormData(prev => ({ ...prev, safetyConsent: 'agree' }))
+                                                    }}
+                                                    className={`flex items-center justify-center gap-2 py-4 px-6 rounded-2xl border-2 transition-all font-black text-[10px] uppercase tracking-widest ${
+                                                        formData.safetyConsent === 'agree'
+                                                            ? 'bg-brand-green border-brand-green text-white shadow-lg'
+                                                            : 'bg-white border-slate-100 text-slate-400 hover:border-brand-green/30'
+                                                    }`}
+                                                >
+                                                    {formData.safetyConsent === 'agree' && <Check size={14} />} I Agree
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={(e) => {
+                                                        e.preventDefault();
+                                                        setFormData(prev => ({ ...prev, safetyConsent: 'disagree' }))
+                                                    }}
+                                                    className={`flex items-center justify-center gap-2 py-4 px-6 rounded-2xl border-2 transition-all font-black text-[10px] uppercase tracking-widest ${
+                                                        formData.safetyConsent === 'disagree'
+                                                            ? 'bg-slate-800 border-slate-800 text-white shadow-lg'
+                                                            : 'bg-white border-slate-100 text-slate-400 hover:border-slate-800/30'
+                                                    }`}
+                                                >
+                                                    I Disagree
+                                                </button>
+                                            </div>*/}
                                             <div className="flex gap-4">
                                                 <label className="flex items-center gap-2 cursor-pointer group">
                                                     <input
@@ -479,7 +509,7 @@ export const VolunteerSignup: React.FC = () => {
                                         type="submit"
                                         className="flex items-center gap-3 px-12 py-5 bg-brand-green text-white rounded-full font-black uppercase tracking-widest text-xs hover:bg-green-700 transition-all shadow-2xl scale-105"
                                     >
-                                        Submit Signup <CheckCircle size={18} />
+                                        Signup <CheckCircle size={18} />
                                     </button>
                                 )}
                             </div>

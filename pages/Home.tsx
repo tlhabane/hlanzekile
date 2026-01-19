@@ -96,7 +96,7 @@ export const Home: React.FC = () => {
                 </button>
 
                 {/* Dots */}
-                <div className="absolute bottom-14 left-1/2 -translate-x-1/2 z-30 flex gap-3">
+                <div className="absolute opacity-0 bottom-14 left-1/2 -translate-x-1/2 z-30 flex gap-3">
                     {SLIDES.map((_, index) => (
                         <button
                             key={index}
