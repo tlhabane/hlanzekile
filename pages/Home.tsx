@@ -55,7 +55,7 @@ export const Home: React.FC = () => {
                                 <h1 className="text-4xl md:text-7xl font-extrabold text-white tracking-tight mb-8 leading-tight">
                                     {slide.title}
                                 </h1>
-                                <p className="text-xl md:text-2xl text-slate-100 max-w-6xl mx-auto leading-relaxed">
+                                <p className="text-xl md:text-2xl hidden sm:block text-slate-100 max-w-6xl mx-auto leading-relaxed">
                                     {slide.description}
                                 </p>
                                 {/* Buttons */}
@@ -96,7 +96,7 @@ export const Home: React.FC = () => {
                 </button>
 
                 {/* Dots */}
-                <div className="absolute opacity-0 bottom-14 left-1/2 -translate-x-1/2 z-30 flex gap-3">
+                <div className="absolute md:opacity-0 bottom-20 left-1/2 -translate-x-1/2 z-30 flex gap-3">
                     {SLIDES.map((_, index) => (
                         <button
                             key={index}

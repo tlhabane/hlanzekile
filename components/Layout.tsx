@@ -11,11 +11,14 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
 
     useEffect(() => {
         const handleScroll = () => {
-            setIsScrolled(window.scrollY > 10);
+            setIsScrolled(window.scrollY > 10 || window.innerWidth <= 768);
         };
         window.addEventListener('scroll', handleScroll);
+        // initial logo on mobile screens
+        setIsScrolled(window.innerWidth <= 768);
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
+
 
     // Determine if we should show the transparent header styling
     // Only on desktop (handled via md: classes mostly, but logical check helps for conditional rendering if needed)
@@ -35,8 +38,10 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
     // Links for mobile menu
     const mobileLinks: { path: string; label: string; isHighlight?: boolean }[] = [
         ...centerLinks,
-        { path: '/get-involved', label: 'Get Involved', isHighlight: true },
-        { path: '/portal', label: 'Member Portal' },
+        { path: '/volunteer', label: 'Join Our Movement' },
+        { path: 'https://pay.yoco.com/hlanzekile-river-and-ocean-cleaning-npc', label: 'Donate Today', isHighlight: true },
+        /*{ path: '/get-involved', label: 'Get Involved', isHighlight: true },
+        { path: '/portal', label: 'Member Portal' },*/
     ];
 
     const isActive = (path: string) => location.pathname === path;
@@ -171,6 +176,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                                 <Link
                                     key={link.path}
                                     to={link.path}
+                                    target={link.isHighlight ? '_blank' : '_self'}
                                     onClick={() => setIsMenuOpen(false)}
                                     className={`block px-3 py-2 rounded-md text-base font-medium ${
                                         link.isHighlight
