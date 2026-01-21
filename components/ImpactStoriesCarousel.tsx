@@ -93,7 +93,7 @@ export const ImpactStoriesCarousel: React.FC<Props> = ({ areaName = '', storyId 
                 {stories.map((story) => (
                     <div key={story.id} className="snap-start flex-shrink-0 w-full md:w-1/2 lg:w-1/3 p-3">
                         <div className="bg-white rounded-xl border border-slate-100 shadow-sm hover:shadow-xl transition-shadow duration-300 flex flex-col group h-full">
-                            <div className="h-48 overflow-hidden rounded-t-xl relative">
+                            <div className="aspect-[4/3]  overflow-hidden rounded-t-xl relative">
                                 <Link to={`/impact/story/${story.slug}`}>
                                     <img
                                         src={story.mainMedia.thumbnail || story.mainMedia.url}
