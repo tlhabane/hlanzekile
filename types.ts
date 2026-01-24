@@ -125,3 +125,13 @@ export interface ProcessStep {
     description: string;
     image: string;
 }
+
+export type FormState = 'error' | 'pending' | 'submitting' | 'successful';
+export interface FormInput {
+    value: any;
+    error: string;
+    required?: boolean;
+    type: 'text' | 'email' | 'tel' | 'number';
+}
+
+export type FormData = Record<string, FormInput>;

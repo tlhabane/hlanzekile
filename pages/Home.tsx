@@ -5,6 +5,7 @@ import { ProcessAccordion } from '../components/ProcessAccordion';
 import { KeyMetrics } from '../components/KeyMetrics';
 import { ImpactStoriesCarousel } from '../components/ImpactStoriesCarousel';
 import { VisionCard } from '../components/VisionCard';
+import { NewsletterSignupForm } from '@/components/NewsletterSignupForm.tsx';
 import { PROCESS_STEPS, SLIDES, VISION_DATA } from '@/services';
 
 export const Home: React.FC = () => {
@@ -197,34 +198,7 @@ export const Home: React.FC = () => {
 
             {/* Newsletter Signup - Updated Style */}
             <section className="bg-slate-100 py-20">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="max-w-4xl mx-auto flex flex-col md:flex-row items-center justify-between gap-8">
-                        <div className="md:w-1/2 text-center md:text-left">
-                            <h3 className="text-2xl font-bold text-slate-800 mb-2">Stay Updated with Hlanzekile</h3>
-                            <p className="text-slate-600">
-                                Join our mailing list to get the latest updates on cleanup events, upcycling projects,
-                                and success stories.
-                            </p>
-                        </div>
-                        <div className="md:w-1/2 w-full">
-                            <form className="relative" onSubmit={(e) => e.preventDefault()}>
-                                <input
-                                    type="email"
-                                    placeholder="Enter your email address"
-                                    className="w-full pl-6 pr-14 py-4 rounded-full border border-slate-300 focus:ring-2 focus:ring-brand-blue focus:border-transparent outline-none bg-white shadow-sm"
-                                    required
-                                />
-                                <button
-                                    type="submit"
-                                    className="absolute right-2 top-2 bottom-2 aspect-square bg-brand-blue text-white rounded-full hover:bg-blue-900 transition flex items-center justify-center shadow-md"
-                                    aria-label="Sign Up"
-                                >
-                                    <ChevronRight size={24} />
-                                </button>
-                            </form>
-                        </div>
-                    </div>
-                </div>
+                <NewsletterSignupForm />
             </section>
         </div>
     );

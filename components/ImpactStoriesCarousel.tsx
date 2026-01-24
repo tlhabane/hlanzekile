@@ -93,25 +93,25 @@ export const ImpactStoriesCarousel: React.FC<Props> = ({ areaName = '', storyId 
                 {stories.map((story) => (
                     <div key={story.id} className="snap-start flex-shrink-0 w-full md:w-1/2 lg:w-1/3 p-3">
                         <div className="bg-white rounded-xl border border-slate-100 shadow-sm hover:shadow-xl transition-shadow duration-300 flex flex-col group h-full">
-                            <div className="aspect-[4/3]  overflow-hidden rounded-t-xl relative">
+                            <div className="aspect-[4/3] overflow-hidden rounded-t-xl relative">
                                 <Link to={`/impact/story/${story.slug}`}>
                                     <img
                                         src={story.mainMedia.thumbnail || story.mainMedia.url}
                                         alt={story.title}
                                         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                                     />
-
-                                    <div className="absolute top-4 right-4 bg-white/90 backdrop-blur px-3 py-1 rounded-full text-xs font-bold text-brand-blue shadow-sm">
-                                        {story.date}
-                                    </div>
-                                    {story.mainMedia.type === 'video' && (
-                                        <div className="absolute inset-0 flex items-center justify-center bg-black/10">
-                                            <div className="w-12 h-12 opacity-50 bg-brand-green/90 rounded-full flex items-center justify-center text-white">
-                                                <Video size={20} className="ml-0.5" />
-                                            </div>
-                                        </div>
-                                    )}
                                 </Link>
+                                <div className="absolute top-4 right-4 bg-white/90 backdrop-blur px-3 py-1 rounded-full text-xs font-bold text-brand-blue shadow-sm">
+                                    {story.date}
+                                </div>
+                                {story.mainMedia.type === 'video' && (
+                                    <div className="absolute inset-0 flex items-center justify-center bg-black/10">
+                                        <div className="w-12 h-12 opacity-50 bg-brand-green/90 rounded-full flex items-center justify-center text-white">
+                                            <Video size={20} className="ml-0.5" />
+                                        </div>
+                                    </div>
+                                )}
+
                             </div>
                             <div className="p-6 flex flex-col flex-grow">
                                 <Link to={`/impact/story/${story.slug}`}>

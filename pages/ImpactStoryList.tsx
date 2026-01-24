@@ -8,6 +8,7 @@ import {
 import { MOCK_STORIES } from '@/services';
 import { ImpactStory } from '../types';
 import { Headers } from '@/assets/headers';
+import { NewsletterSignupForm } from '@/components/NewsletterSignupForm.tsx';
 
 const HeaderImage = Headers.aboutUs;
 
@@ -64,12 +65,14 @@ const DonationCTA = () => (
 
 const StoryCard = ({ story }: { story: ImpactStory }) => (
     <div className="bg-white rounded-[2rem] border border-slate-100 shadow-sm hover:shadow-2xl transition-all duration-500 flex flex-col group h-full">
-        <div className="h-56 overflow-hidden rounded-t-[2rem] relative">
-            <img
-                src={story.mainMedia.thumbnail || story.mainMedia.url}
-                alt={story.title}
-                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-            />
+        <div className="aspect-[4/3] overflow-hidden rounded-t-[2rem] relative">
+            <Link to={`/impact/story/${story.slug}`}>
+                <img
+                    src={story.mainMedia.thumbnail || story.mainMedia.url}
+                    alt={story.title}
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                />
+            </Link>
             <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-md px-3 py-1 rounded-full text-[10px] font-black text-brand-blue shadow-sm uppercase tracking-widest">
                 {story.category}
             </div>
@@ -85,9 +88,11 @@ const StoryCard = ({ story }: { story: ImpactStory }) => (
             <div className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">
                 <Calendar size={12} className="text-brand-green" /> {story.date}
             </div>
-            <h3 className="font-black text-xl text-brand-blue mb-4 leading-tight group-hover:text-brand-green transition-colors tracking-tight">
-                {story.title}
-            </h3>
+            <Link to={`/impact/story/${story.slug}`}>
+                <h3 className="font-black text-xl text-brand-blue mb-4 leading-tight group-hover:text-brand-green transition-colors tracking-tight">
+                    {story.title}
+                </h3>
+            </Link>
             <p className="text-slate-500 text-sm leading-relaxed mb-8 font-light line-clamp-3">
                 {story.excerpt}
             </p>
@@ -350,34 +355,7 @@ export const ImpactStoryList: React.FC = () => {
 
             {/* Newsletter Signup - Updated Style */}
             <section className="bg-slate-100 py-20">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="max-w-4xl mx-auto flex flex-col md:flex-row items-center justify-between gap-8">
-                        <div className="md:w-1/2 text-center md:text-left">
-                            <h3 className="text-2xl font-bold text-slate-800 mb-2">Stay Updated with Hlanzekile</h3>
-                            <p className="text-slate-600">
-                                Join our mailing list to get the latest updates on cleanup events, upcycling projects,
-                                and success stories.
-                            </p>
-                        </div>
-                        <div className="md:w-1/2 w-full">
-                            <form className="relative" onSubmit={(e) => e.preventDefault()}>
-                                <input
-                                    type="email"
-                                    placeholder="Enter your email address"
-                                    className="w-full pl-6 pr-14 py-4 rounded-full border border-slate-300 focus:ring-2 focus:ring-brand-blue focus:border-transparent outline-none bg-white shadow-sm"
-                                    required
-                                />
-                                <button
-                                    type="submit"
-                                    className="absolute right-2 top-2 bottom-2 aspect-square bg-brand-blue text-white rounded-full hover:bg-blue-900 transition flex items-center justify-center shadow-md"
-                                    aria-label="Sign Up"
-                                >
-                                    <ChevronRight size={24} />
-                                </button>
-                            </form>
-                        </div>
-                    </div>
-                </div>
+                <NewsletterSignupForm />
             </section>
         </div>
     );

@@ -1,22 +1,33 @@
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import {
     /*ArrowLeft, ArrowRight, Check, */Calendar, MapPin, Clock,
-    Info, CheckCircle, ShieldAlert, Heart, Phone, /*User,*/
+    Info, Check, ShieldAlert, Heart, Phone, /*User,*/
     ChevronRight, ChevronLeft, Droplets, Zap
 } from 'lucide-react';
 import { useParams, Link } from 'react-router-dom';
+import { Spinner } from '@/components/Spinner';
+import { ErrorLabel } from '@/components/ErrorLabel';
+import { ErrorNotice } from '@/components/ErrorNotice';
+import {
+    getValidatedFormData,
+    scrollToElement,
+    useFormValidation,
+    useFormInputValidation,
+    useSendHttpRequest,
+    type RequestMethod,
+} from '@/services';
+import { FormData, FormInput, FormState } from '@/types';
 import { Headers } from '@/assets/headers';
 
 const HeaderImage = Headers.aboutUs;
 
 type SignupStep = 1 | 2 | 3;
-type Area = 'Soweto' | 'Bryanston';
 
-const Success: React.FC<{ area: Area}> = ({ area }) => (
+const Success: React.FC<{ area: string}> = ({ area }) => (
     <div className="w-full flex flex-col md:flex-row justify-center">
         <div className="max-w-xl w-full text-center space-y-8 p-12 bg-white rounded-[3rem] shadow-2xl border border-slate-100 animate-fade-in">
             <div className="w-24 h-24 bg-brand-green rounded-full flex items-center justify-center text-white mx-auto shadow-xl">
-                <CheckCircle size={48} />
+                <Check size={48} />
             </div>
             <div>
                 <h1 className="text-3xl font-black text-brand-blue tracking-tighter mb-4">You're Enlisted!</h1>
@@ -32,42 +43,133 @@ const Success: React.FC<{ area: Area}> = ({ area }) => (
     </div>
 );
 
+const defaultInput: FormInput = {
+    value: '',
+    error: '',
+    type: 'text',
+    required: true
+};
+
+const initFormData: FormData = {
+    area: { ...defaultInput, value: 'Soweto' },
+    date: { ...defaultInput },
+    name: { ...defaultInput },
+    age: { ...defaultInput },
+    tel: { ...defaultInput, type: 'tel' },
+    email: { ...defaultInput, type: 'email' },
+    medical: { ...defaultInput, required: false },
+    emergencyName1: { ...defaultInput },
+    emergencyPhone1: { ...defaultInput, type: 'tel' },
+    emergencyName2: { ...defaultInput, required: false },
+    emergencyPhone2: { ...defaultInput, required: false, type: 'tel' },
+    safetyConsent: { ...defaultInput },
+    mediaConsent: { ...defaultInput }
+}
+
+const validationSteps: Record<SignupStep, string[]> = {
+    1: ['area', 'date', 'name', 'age', 'tel', 'email'],
+    2: ['medical', 'emergencyName1', 'emergencyPhone1', 'emergencyName2', 'emergencyPhone2'],
+    3: ['safetyConsent', 'mediaConsent']
+}
+
 export const VolunteerSignup: React.FC = () => {
     window.document.title = 'Become a Steward of Change :: Hlanzekile River & Ocean Cleaning';
     const [step, setStep] = useState<SignupStep>(1);
     const { areaName } = useParams<{ areaName?: string }>();
-    const [area, setArea] = useState<Area>((areaName as Area) || 'Soweto');
-    const [isSubmitted, setIsSubmitted] = useState(false);
-
 
     // Form State
+    const [formState, setFormState] = useState<FormState>('pending');
     const [formData, setFormData] = useState({
-        date: '',
-        fullName: '',
-        age: '',
-        phone: '',
-        email: '',
-        medical: '',
-        emergencyName1: '',
-        emergencyPhone1: '',
-        emergencyName2: '',
-        emergencyPhone2: '',
-        safetyConsent: '',
-        mediaConsent: ''
+        ...initFormData,
+        area: {
+            ...initFormData.area,
+            value: areaName || 'Soweto'
+        }
     });
+    const updateFormData = (name: string, value: any) => {
+        setFormData((prevState) => ({
+            ...prevState,
+            [name]: {
+                ...prevState[name],
+                error: '',
+                value
+            }
+        }))
+    };
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
-        setFormData(prev => ({ ...prev, [name]: value }));
+        updateFormData(name, value);
     };
 
-    const nextStep = () => setStep(prev => (prev < 3 ? prev + 1 : prev) as SignupStep);
+    const validateForm = useFormValidation();
+    const nextStep = () => {
+        const stepFormData = Object.values(validationSteps[step]).reduce((acc, key) => {
+            acc[key] = formData[key];
+            return acc;
+        }, {} as FormData);
+        const { updatedFormData, isValid } = validateForm(stepFormData);
+        if (isValid) {
+            setStep(prev => (prev < 3 ? prev + 1 : prev) as SignupStep);
+            scrollToElement('form-step-top');
+            return;
+        }
+        setFormData((prevState) => ({ ...prevState, ...updatedFormData }));
+        scrollToElement('form-step-top');
+    };
     const prevStep = () => setStep(prev => (prev > 1 ? prev - 1 : prev) as SignupStep);
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const validateFormInput = useFormInputValidation();
+    const onBlur = useCallback((e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+        const name = e.target.name;
+        if (formData[name]) {
+            const { updatedInputProps, isValid } = validateFormInput(formData[name]);
+            if (!isValid) {
+                setFormData((prevState) => ({ ...prevState, [name]: { ...updatedInputProps } }));
+            }
+        }
+    }, [formData, validateFormInput])
+
+
+    const sendHttpRequest = useSendHttpRequest();
+
+    const handleSubmit = useCallback(async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        setIsSubmitted(true);
-    };
+
+        const { updatedFormData, isValid } = validateForm(formData);
+        if (isValid) {
+            try {
+                setFormState('submitting');
+
+                const httpRequestConfig = {
+                    method: 'POST' as RequestMethod,
+                    url: '/volunteer',
+                    body: getValidatedFormData(formData)
+                };
+                await sendHttpRequest(httpRequestConfig);
+
+                setFormState('successful');
+                setFormData(initFormData);
+                scrollToElement('form-top');
+            } catch (error: any) {
+                setFormState('error');
+                scrollToElement('form-step-top')
+            }
+
+            return;
+        }
+
+        setFormData(updatedFormData);
+        scrollToElement('form-step-top');
+    }, [formData, sendHttpRequest, validateForm]);
+
+
+    const formStepInvalid = validationSteps[step].some(
+        (field) => formData[field].error || (String(formData[field].value).trim() === '' && formData[field].required),
+    )
+    const formInvalid = Object.values(formData).some(
+        (field) => field.error || (String(field.value).trim() === '' && field.required),
+    );
 
     return (
         <div className="animate-fade-in bg-slate-50 min-h-screen relative flex flex-col items-center">
@@ -103,8 +205,9 @@ export const VolunteerSignup: React.FC = () => {
             </section>
 
             <div className="relative z-10 w-full flex justify-center mt-[calc(85vh-30px)] pb-20 px-4">
-                {isSubmitted && <Success area={area} />}
-                {!isSubmitted && (
+                <div id="form-top" />
+                {formState === 'successful' && <Success area={formData.area.value} />}
+                {formState !== 'successful' && (
                     <div className="w-full max-w-6xl bg-white rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col md:flex-row border border-slate-100">
 
                         {/* Left Column: Info Section (Brand Blue) */}
@@ -114,9 +217,9 @@ export const VolunteerSignup: React.FC = () => {
                                 <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" /> Contact us
                             </Link>*/}
 
-                                {/*<h2 className="text-3xl md:text-5xl font-black mb-8 tracking-tighter leading-tight">
-                                Volunteer <br/> <span className="text-brand-yellow">Signup</span>
-                            </h2>*/}
+                                <h2 className="text-3xl md:text-5xl font-black mb-8 tracking-tighter leading-tight lg:hidden md:hidden sm:block">
+                                    Volunteer <br/> <span className="text-brand-yellow">Signup</span>
+                                </h2>
 
                                 <div className="space-y-10">
                                     {/* Location Info */}
@@ -143,7 +246,7 @@ export const VolunteerSignup: React.FC = () => {
                                         <div>
                                             <h3 className="font-black text-xs uppercase tracking-widest text-blue-200 mb-2">Cleanup Days</h3>
                                             <p className="text-white text-base font-light leading-relaxed">
-                                                {area === 'Soweto'
+                                                {formData.area.value === 'Soweto'
                                                     ? 'One Saturday a month - Please indicate which Saturday in the form.'
                                                     : 'Three Saturdays a month - Choose your preferred date.'}
                                             </p>
@@ -195,6 +298,7 @@ export const VolunteerSignup: React.FC = () => {
                         <div className="md:w-7/12 bg-white p-10 lg:p-14 flex flex-col relative">
 
                             {/* Step Indicator */}
+                            <div id="form-step-top" />
                             <div className="flex items-center gap-2 mb-12">
                                 {[1, 2, 3].map((s) => (
                                     <div key={s} className="flex-1 h-1.5 rounded-full overflow-hidden bg-slate-100 relative">
@@ -209,8 +313,8 @@ export const VolunteerSignup: React.FC = () => {
                 Step {step} / 3
               </span>
                             </div>
-
-                            <form onSubmit={handleSubmit} className="flex-grow flex flex-col">
+                            <ErrorNotice formState={formState} onClick={() => setFormState('pending')} />
+                            <form onSubmit={handleSubmit} className="flex-grow flex flex-col" noValidate>
 
                                 {/* Step 1: The Basics */}
                                 {step === 1 && (
@@ -221,9 +325,12 @@ export const VolunteerSignup: React.FC = () => {
                                             <div className="space-y-2">
                                                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Focus Area *</label>
                                                 <select
-                                                    value={area}
-                                                    onChange={(e) => setArea(e.target.value as Area)}
-                                                    className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:border-brand-blue font-bold text-brand-blue transition-all"
+                                                    defaultValue={formData.area.value}
+                                                    required={formData.area.required}
+                                                    onBlur={onBlur}
+                                                    onChange={handleInputChange}
+                                                    name="area"
+                                                    className={`w-full px-5 py-4 bg-slate-50 border border-${formData.area.error.trim() === '' ? 'slate-200' : 'red-600'} rounded-2xl outline-none focus:border-brand-blue font-bold text-brand-blue transition-all`}
                                                 >
                                                     <option value="Soweto">Soweto (Kliprivier)</option>
                                                     <option value="Bryanston">Bryanston (Braamfontein Spruit)</option>
@@ -233,26 +340,30 @@ export const VolunteerSignup: React.FC = () => {
                                             <div className="space-y-2">
                                                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Preferred Saturday (e.g. Sat 29 March) *</label>
                                                 <input
-                                                    type="text"
                                                     name="date"
-                                                    value={formData.date}
+                                                    type="text"
+                                                    defaultValue={formData.date.value}
+                                                    required={formData.date.required}
+                                                    onBlur={onBlur}
                                                     onChange={handleInputChange}
                                                     placeholder="Saturday, 29 March"
-                                                    required
-                                                    className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:border-brand-blue font-bold text-slate-800 transition-all placeholder:text-slate-300"
+                                                    className={`w-full px-5 py-4 bg-slate-50 border border-${formData.date.error.trim() === '' ? 'slate-200' : 'red-600'} rounded-2xl outline-none focus:border-brand-blue font-bold text-brand-blue transition-all`}
                                                 />
+                                                <ErrorLabel message={formData.date.error} />
                                             </div>
 
                                             <div className="space-y-2">
                                                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Name and Surname *</label>
                                                 <input
                                                     type="text"
-                                                    name="fullName"
-                                                    value={formData.fullName}
+                                                    name="name"
+                                                    defaultValue={formData.name.value}
+                                                    required={formData.name.required}
+                                                    onBlur={onBlur}
                                                     onChange={handleInputChange}
-                                                    required
-                                                    className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:border-brand-blue font-bold text-slate-800 transition-all"
+                                                    className={`w-full px-5 py-4 bg-slate-50 border border-${formData.name.error.trim() === '' ? 'slate-200' : 'red-600'} rounded-2xl outline-none focus:border-brand-blue font-bold text-brand-blue transition-all`}
                                                 />
+                                                <ErrorLabel message={formData.name.error} />
                                             </div>
 
                                             <div className="grid grid-cols-2 gap-6">
@@ -261,22 +372,26 @@ export const VolunteerSignup: React.FC = () => {
                                                     <input
                                                         type="number"
                                                         name="age"
-                                                        value={formData.age}
+                                                        defaultValue={formData.age.value}
+                                                        required={formData.age.required}
+                                                        onBlur={onBlur}
                                                         onChange={handleInputChange}
-                                                        required
-                                                        className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:border-brand-blue font-bold text-slate-800 transition-all"
+                                                        className={`w-full px-5 py-4 bg-slate-50 border border-${formData.age.error.trim() === '' ? 'slate-200' : 'red-600'} rounded-2xl outline-none focus:border-brand-blue font-bold text-brand-blue transition-all`}
                                                     />
+                                                    <ErrorLabel message={formData.age.error} />
                                                 </div>
                                                 <div className="space-y-2">
                                                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Phone Number *</label>
                                                     <input
                                                         type="tel"
-                                                        name="phone"
-                                                        value={formData.phone}
+                                                        name="tel"
+                                                        defaultValue={formData.tel.value}
+                                                        required={formData.tel.required}
+                                                        onBlur={onBlur}
                                                         onChange={handleInputChange}
-                                                        required
-                                                        className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:border-brand-blue font-bold text-slate-800 transition-all"
+                                                        className={`w-full px-5 py-4 bg-slate-50 border border-${formData.tel.error.trim() === '' ? 'slate-200' : 'red-600'} rounded-2xl outline-none focus:border-brand-blue font-bold text-brand-blue transition-all`}
                                                     />
+                                                    <ErrorLabel message={formData.tel.error} />
                                                 </div>
                                             </div>
 
@@ -285,11 +400,13 @@ export const VolunteerSignup: React.FC = () => {
                                                 <input
                                                     type="email"
                                                     name="email"
-                                                    value={formData.email}
+                                                    defaultValue={formData.email.value}
+                                                    required={formData.email.required}
+                                                    onBlur={onBlur}
                                                     onChange={handleInputChange}
-                                                    required
-                                                    className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:border-brand-blue font-bold text-slate-800 transition-all"
+                                                    className={`w-full px-5 py-4 bg-slate-50 border border-${formData.email.error.trim() === '' ? 'slate-200' : 'red-600'} rounded-2xl outline-none focus:border-brand-blue font-bold text-brand-blue transition-all`}
                                                 />
+                                                <ErrorLabel message={formData.email.error} />
                                             </div>
                                         </div>
                                     </div>
@@ -305,13 +422,15 @@ export const VolunteerSignup: React.FC = () => {
                                                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Any medical conditions/allergies? *</label>
                                                 <textarea
                                                     name="medical"
-                                                    value={formData.medical}
+                                                    defaultValue={formData.medical.value}
+                                                    required={formData.medical.required}
+                                                    onBlur={onBlur}
                                                     onChange={handleInputChange}
                                                     placeholder="If yes, please elaborate..."
-                                                    required
                                                     rows={3}
-                                                    className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:border-brand-blue font-medium text-slate-800 transition-all resize-none"
+                                                    className={`w-full px-5 py-4 bg-slate-50 border border-${formData.medical.error.trim() === '' ? 'slate-200' : 'red-600'} rounded-2xl outline-none focus:border-brand-blue font-bold text-brand-blue transition-all`}
                                                 />
+                                                <ErrorLabel message={formData.medical.error} />
                                             </div>
 
                                             <div className="p-6 bg-slate-50 rounded-3xl border border-slate-100 space-y-6">
@@ -320,24 +439,32 @@ export const VolunteerSignup: React.FC = () => {
                                                     <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Emergency Contact #1 *</span>
                                                 </div>
                                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                    <input
-                                                        type="text"
-                                                        name="emergencyName1"
-                                                        value={formData.emergencyName1}
-                                                        onChange={handleInputChange}
-                                                        placeholder="Contact Name"
-                                                        required
-                                                        className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl outline-none focus:border-brand-blue text-sm font-bold"
-                                                    />
-                                                    <input
-                                                        type="tel"
-                                                        name="emergencyPhone1"
-                                                        value={formData.emergencyPhone1}
-                                                        onChange={handleInputChange}
-                                                        placeholder="Phone Number"
-                                                        required
-                                                        className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl outline-none focus:border-brand-blue text-sm font-bold"
-                                                    />
+                                                    <div className="">
+                                                        <input
+                                                            type="text"
+                                                            name="emergencyName1"
+                                                            defaultValue={formData.emergencyName1.value}
+                                                            required={formData.emergencyName1.required}
+                                                            onBlur={onBlur}
+                                                            onChange={handleInputChange}
+                                                            placeholder="Contact Name"
+                                                            className={`w-full px-5 py-4 bg-slate-50 border border-${formData.emergencyName1.error.trim() === '' ? 'slate-200' : 'red-600'} rounded-2xl outline-none focus:border-brand-blue font-bold text-brand-blue transition-all`}
+                                                        />
+                                                        <ErrorLabel message={formData.emergencyName1.error} />
+                                                    </div>
+                                                    <div className="">
+                                                        <input
+                                                            type="tel"
+                                                            name="emergencyPhone1"
+                                                            defaultValue={formData.emergencyPhone1.value}
+                                                            required={formData.emergencyPhone1.required}
+                                                            onBlur={onBlur}
+                                                            onChange={handleInputChange}
+                                                            placeholder="Phone Number"
+                                                            className={`w-full px-5 py-4 bg-slate-50 border border-${formData.emergencyPhone1.error.trim() === '' ? 'slate-200' : 'red-600'} rounded-2xl outline-none focus:border-brand-blue font-bold text-brand-blue transition-all`}
+                                                        />
+                                                        <ErrorLabel message={formData.emergencyPhone1.error} />
+                                                    </div>
                                                 </div>
                                             </div>
 
@@ -347,22 +474,32 @@ export const VolunteerSignup: React.FC = () => {
                                                     <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Emergency Contact #2 (Optional)</span>
                                                 </div>
                                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                    <input
-                                                        type="text"
-                                                        name="emergencyName2"
-                                                        value={formData.emergencyName2}
-                                                        onChange={handleInputChange}
-                                                        placeholder="Contact Name"
-                                                        className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl outline-none focus:border-brand-blue text-sm font-bold"
-                                                    />
-                                                    <input
-                                                        type="tel"
-                                                        name="emergencyPhone2"
-                                                        value={formData.emergencyPhone2}
-                                                        onChange={handleInputChange}
-                                                        placeholder="Phone Number"
-                                                        className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl outline-none focus:border-brand-blue text-sm font-bold"
-                                                    />
+                                                    <div className="">
+                                                        <input
+                                                            type="text"
+                                                            name="emergencyName2"
+                                                            defaultValue={formData.emergencyName2.value}
+                                                            required={formData.emergencyName2.required}
+                                                            onBlur={onBlur}
+                                                            onChange={handleInputChange}
+                                                            placeholder="Contact Name"
+                                                            className={`w-full px-5 py-4 bg-slate-50 border border-${formData.emergencyName2.error.trim() === '' ? 'slate-200' : 'red-600'} rounded-2xl outline-none focus:border-brand-blue font-bold text-brand-blue transition-all`}
+                                                        />
+                                                        <ErrorLabel message={formData.emergencyName2.error} />
+                                                    </div>
+                                                    <div className="">
+                                                        <input
+                                                            type="tel"
+                                                            name="emergencyPhone2"
+                                                            defaultValue={formData.emergencyPhone2.value}
+                                                            required={formData.emergencyPhone2.required}
+                                                            onBlur={onBlur}
+                                                            onChange={handleInputChange}
+                                                            placeholder="Phone Number"
+                                                            className={`w-full px-5 py-4 bg-slate-50 border border-${formData.emergencyPhone2.error.trim() === '' ? 'slate-200' : 'red-600'} rounded-2xl outline-none focus:border-brand-blue font-bold text-brand-blue transition-all`}
+                                                        />
+                                                        <ErrorLabel message={formData.emergencyPhone2.error} />
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
@@ -419,9 +556,10 @@ export const VolunteerSignup: React.FC = () => {
                                                         <input
                                                             type="radio"
                                                             name="safetyConsent"
-                                                            required
+                                                            defaultValue={formData.safetyConsent.value}
+                                                            required={formData.safetyConsent.required}
+                                                            onChange={() => updateFormData('safetyConsent', 'agree')}
                                                             className="w-4 h-4 accent-brand-green"
-                                                            onChange={() => setFormData(prev => ({ ...prev, safetyConsent: 'agree' }))}
                                                         />
                                                         <span className="text-xs font-bold text-slate-700">I Agree</span>
                                                     </label>
@@ -430,11 +568,13 @@ export const VolunteerSignup: React.FC = () => {
                                                             type="radio"
                                                             name="safetyConsent"
                                                             className="w-4 h-4 accent-brand-green"
-                                                            onChange={() => setFormData(prev => ({ ...prev, safetyConsent: 'disagree' }))}
+                                                            defaultValue={formData.safetyConsent.value}
+                                                            onChange={() => updateFormData('safetyConsent', 'disagree')}
                                                         />
                                                         <span className="text-xs font-bold text-slate-700">I Disagree</span>
                                                     </label>
                                                 </div>
+                                                <ErrorLabel message={formData.safetyConsent.error} />
                                             </div>
 
                                             {/* Media Release */}
@@ -451,9 +591,10 @@ export const VolunteerSignup: React.FC = () => {
                                                         <input
                                                             type="radio"
                                                             name="mediaConsent"
-                                                            required
                                                             className="w-4 h-4 accent-brand-green"
-                                                            onChange={() => setFormData(prev => ({ ...prev, mediaConsent: 'agree' }))}
+                                                            defaultValue={formData.mediaConsent.value}
+                                                            required={formData.mediaConsent.required}
+                                                            onChange={() => updateFormData('mediaConsent', 'agree')}
                                                         />
                                                         <span className="text-xs font-bold text-slate-700">I Agree</span>
                                                     </label>
@@ -462,11 +603,13 @@ export const VolunteerSignup: React.FC = () => {
                                                             type="radio"
                                                             name="mediaConsent"
                                                             className="w-4 h-4 accent-brand-green"
-                                                            onChange={() => setFormData(prev => ({ ...prev, mediaConsent: 'disagree' }))}
+                                                            defaultValue={formData.mediaConsent.value}
+                                                            onChange={() => updateFormData('mediaConsent', 'disagree')}
                                                         />
                                                         <span className="text-xs font-bold text-slate-700">I Disagree</span>
                                                     </label>
                                                 </div>
+                                                <ErrorLabel message={formData.mediaConsent.error} />
                                             </div>
                                         </div>
                                     </div>
@@ -490,16 +633,17 @@ export const VolunteerSignup: React.FC = () => {
                                         <button
                                             type="button"
                                             onClick={nextStep}
-                                            className="flex items-center gap-3 px-10 py-4 bg-brand-blue text-white rounded-full font-black uppercase tracking-widest text-xs hover:bg-slate-900 transition-all shadow-xl group"
+                                            className={`flex items-center gap-3 px-10 py-4 bg-brand-blue text-white rounded-full font-black uppercase tracking-widest text-xs hover:bg-slate-900 transition-all shadow-xl group`}
                                         >
                                             Next Step <ChevronRight size={18} className="group-hover:translate-x-1 transition-transform" />
                                         </button>
                                     ) : (
                                         <button
                                             type="submit"
-                                            className="flex items-center gap-3 px-12 py-5 bg-brand-green text-white rounded-full font-black uppercase tracking-widest text-xs hover:bg-green-700 transition-all shadow-2xl scale-105"
+                                            className={`flex items-center gap-3 px-12 py-5 bg-brand-${(formState === 'submitting') ? 'blue hover:blue cursor-not-allowed' : 'green hover:bg-slate-900'} text-white rounded-full font-black uppercase tracking-widest text-xs transition-all shadow-2xl scale-105`}
                                         >
-                                            Signup <CheckCircle size={18} />
+                                            {formState !== 'submitting' && <>{'Sign me up'} <ChevronRight size={24} /></>}
+                                            {formState === 'submitting' && <>{'Signing you up'} <Spinner /></>}
                                         </button>
                                     )}
                                 </div>
