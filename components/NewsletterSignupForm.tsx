@@ -42,7 +42,7 @@ export const NewsletterSignupForm: React.FC = () => {
 
                 const httpRequestConfig = {
                     method: 'POST' as RequestMethod,
-                    url: '/newsletter',
+                    url: '/subscribe',
                     body: getValidatedFormData(formData)
                 };
                 await sendHttpRequest(httpRequestConfig);
